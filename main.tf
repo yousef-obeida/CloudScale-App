@@ -1,3 +1,16 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
 # 1. Resource Group
 resource "azurerm_resource_group" "rg" {
   name     = "CloudScale-RG-${var.student_name}"
@@ -32,6 +45,7 @@ resource "azurerm_public_ip" "public_ip" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
+  sku                 = "Standard" 
   tags                = azurerm_resource_group.rg.tags
 }
 
@@ -93,7 +107,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.nic.id]
-  size                  = "Standard_B1s"
+  size                  = "Standard_D2s_v3"
 
   os_disk {
     name                 = "OsDisk"
@@ -111,9 +125,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
   computer_name                   = "cloudscalevm"
   admin_username                  = "azureuser"
   disable_password_authentication = false
-  admin_password                  = "CloudScale@2026!!" # Use SSH keys in a real prod scenario
-# Phase 3: Custom Script to install Docker, pull image, and run it
-  custom_data = base64encode(<<-EOF
+  admin_password                  = "CloudScale@2026!!"
+custom_data = base64encode(<<-EOF
               #!/bin/bash
               sudo apt-get update
               sudo apt-get install -y docker.io
